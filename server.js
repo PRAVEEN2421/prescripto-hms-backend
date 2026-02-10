@@ -16,12 +16,14 @@ connectCloudinary();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://prescripto-hospital-management-system.onrender.com"
+    "https://prescripto-hms-backend.onrender.com"
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options("*", cors());
 
 
 app.use(express.json());
@@ -32,7 +34,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
 app.get("/", (req, res) => {
-  res.send("API Working");
+  res.send("API Working Da Mapla");
 });
 
 app.listen(port, () => {
