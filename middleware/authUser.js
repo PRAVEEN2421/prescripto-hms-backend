@@ -1,12 +1,16 @@
+import "dotenv/config";
 import jwt from 'jsonwebtoken'
 
 const authUser = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization
 
-        if (!authHeader) {
-            return res.json({ success: false, message: 'Not Authorized Login Again' })
-        }
+      if (!authHeader.startsWith("Bearer ")) {
+   return res.status(401).json({
+      success: false,
+      message: "Invalid Token Format"
+   })
+}
 
         const token = authHeader.split(" ")[1]
 
