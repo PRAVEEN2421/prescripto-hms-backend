@@ -19,7 +19,7 @@ const razorpayInstance = new razorpay({
 const registerUser = async (req, res) => {
 
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, phone, address, gender, dob } = req.body;
 
         // checking for all data to register user
         if (!name || !email || !password) {
@@ -44,6 +44,10 @@ const registerUser = async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            phone: phone || '0000000000',
+            address: address ? JSON.parse(address) : { line1: '', line2: '' },
+            gender: gender || 'Not Selected',
+            dob: dob || 'Not Selected'
         }
 
         const newUser = new userModel(userData)
