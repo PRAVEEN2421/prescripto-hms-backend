@@ -178,7 +178,7 @@ const doctorDashboard = async (req, res) => {
 
         const dashData = {
             earnings,
-            appointments: appointments.length,
+            appointments: appointments.filter(a => a.isCompleted).length,
             patients: patients.length,
             latestAppointments: appointments.reverse()
         }
