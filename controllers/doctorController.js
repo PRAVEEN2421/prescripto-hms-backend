@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
+import otpModel from "../models/otpModel.js";
 
 // API for doctor Login 
 const loginDoctor = async (req, res) => {
@@ -190,6 +191,68 @@ const doctorDashboard = async (req, res) => {
     }
 }
 
+// API to generate and send OTP for forgot password (Doctor)
+const sendDoctorOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const doctor = await doctorModel.findOne({ email });
+
+        if (!doctor) {
+            return res.json({ success: false, message: "Doctor does not exist" });
+        }
+
+        // Generate 6 digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save to DB
+        await otpModel.create({ email, otp, role: 'Doctor' });
+
+        // LOG TO CONSOLE FOR TESTING PURPOSES
+        console.log('------------------------------------------------');
+        console.log(`[FORGOT PASSWORD OTP] Doctor: ${email} | OTP: ${otp}`);
+        console.log('------------------------------------------------');
+
+        res.json({ success: true, message: "OTP sent to your email (simulated in console)" });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+// API to reset password using OTP (Doctor)
+const resetDoctorPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        // Verify OTP
+        const validOtp = await otpModel.findOne({ email, otp, role: 'Doctor' });
+        if (!validOtp) {
+            return res.json({ success: false, message: "Invalid or Expired OTP" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.json({ success: false, message: "Please enter a strong password (min 8 chars)" });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update Doctor Password
+        await doctorModel.findOneAndUpdate({ email }, { password: hashedPassword });
+
+        // Delete used OTP
+        await otpModel.findByIdAndDelete(validOtp._id);
+
+        res.json({ success: true, message: "Password reset successful! You can now login." });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
 export {
     loginDoctor,
     appointmentsDoctor,
@@ -199,5 +262,7 @@ export {
     appointmentComplete,
     doctorDashboard,
     doctorProfile,
-    updateDoctorProfile
+    updateDoctorProfile,
+    sendDoctorOTP,
+    resetDoctorPassword
 }
